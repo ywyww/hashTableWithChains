@@ -49,8 +49,8 @@ bool checkIfHashInMassive(int* massiveCollisions, int quantity, int hash);
 int collisionCount(PassportData* headHumanList, int numberOfTableKeys);
 
 void pushBackChainNode(PassportData*, int&);
-void setDeletedNodeByKey(string key, PassportData*);
-void setDeletedNodeByNumber(int, PassportData*);
+void setDeletedNodeByKey(PassportData*, string);
+void setDeletedNodeByNumber(PassportData*, int);
 
 void writeToFile(PassportData*, string);
 void writeSingleNode(PassportData*, ofstream&);
@@ -65,21 +65,21 @@ void correctNodeByNumber(PassportData*, int);
 PassportData cinNode();
 
 enum Commands {
-	createHashChain = 1,
-	printHash,
-	printHumanList,
-	searchByDateOfBirth,
-	countCollision,
-	deleteHash,
-	addNewCell,
-	setDeletedByKeyC,
-	writeFile,
-	restoreFile,
-	deleteTagged,
-	correctNodeCkey,
-	correctNodeCnum,
-	setDeletedByNumC,
-	restoreDeletedElem
+	c_createTable = 1,
+	c_printTable,
+	c_printRecords,
+	c_searchByDateOfBirth,
+	c_countCollision,
+	c_pushBackNode, //6
+	c_writeToFile,
+	c_readFromFile,
+	c_correctNodekey,
+	c_correctNodePosition,
+	c_setDeletedByKey,
+	c_setDeletedByPosition, //12 
+	c_deleteTagged,
+	c_deleteTable, 
+	c_restoreDeletedNode
 };
 
 int main() {
@@ -93,6 +93,9 @@ int main() {
 	PassportData* headHumanList = nullptr;
 	PassportData** hashTable = nullptr;
 
+	string key;		// in switch 
+	int position;	// in switch
+
 	string backupFilename = "backup.txt";
 
 	bool flagIfArrRecords = false;
@@ -103,18 +106,24 @@ int main() {
 		system("cls");
 		cout << "1. Создать хеш-таблицу с рехешированием цепочками" << endl;
 		cout << "2. Вывести таблицу" << endl;
-		cout << "3. Вывести массив записей" << endl;
+		cout << "3. Вывести лист записей" << endl;
+		cout << "-----------------------------" << endl;
 		cout << "4. Поиск человека с заданной датой рождения" << endl;
 		cout << "5. Подсчет количества коллизий при заданном размере" << endl;
-		cout << "6. Удаление хеш-таблицы" << endl;
-		cout << "7. Добавление элемента в хеш-таблицу" << endl;
-		cout << "8. Удаление элемента из хеш-таблицы" << endl;
-		cout << "9. Записать список людей в файл" << endl;
-		cout << "10. Получить список людей из файла" << endl;
-		cout << "11. Удалить помеченные ячейки" << endl;
-		cout << "12. Корректировка по ключу" << endl;
-		cout << "13. Корректировка по номеру" << endl;
-		cout << "14. Поставить удаленной по номеру" << endl;
+		cout << "-----------------------------" << endl;
+		cout << "6. Добавление элемента в хеш-таблицу" << endl;
+		cout << "-----------------------------" << endl;
+		cout << "7. Записать список людей в файл" << endl;
+		cout << "8. Получить список людей из файла" << endl;
+		cout << "-----------------------------" << endl;
+		cout << "9. Корректировка по ключу" << endl;
+		cout << "10. Корректировка по номеру" << endl;
+		cout << "-----------------------------" << endl;
+		cout << "11. Удаление элемента по ключу" << endl;
+		cout << "12. Удаление элемента по номеру" << endl;
+		cout << "13. Удалить помеченные ячейки" << endl;
+		cout << "14. Удаление хеш-таблицы" << endl;
+		cout << "-----------------------------" << endl;
 		cout << "15. Восстановить последнее удаление" << endl;
 
 		cout << "Введите c: "; cin >> c;
@@ -122,7 +131,7 @@ int main() {
 
 		// блок выполняется несколько раз
 
-		if (c == Commands::createHashChain) {
+		if (c == Commands::c_createTable) {
 			cout << "Введите число элементов" << endl; cin.get();
 			while (numberOfTableKeys <= 0) cin >> numberOfTableKeys;
 			if (flagIfArrRecords) {
@@ -130,10 +139,23 @@ int main() {
 				flagIfArrRecords = true;
 			}
 			headHumanList = getHeadPointer(numberOfTableKeys);
+			isListExist = true;
+		}
+		else if (c != Commands::c_restoreDeletedNode && c != Commands::c_readFromFile && c != Commands::c_createTable && isListExist == false) {
+			cout << "try again" << endl;
+			c = 100;
+		}
+		else if (c == Commands::c_setDeletedByKey || c == Commands::c_searchByDateOfBirth || c == Commands::c_correctNodekey) {
+			cout << "Enter the key" << endl; cin.get();
+			getline(cin, key);
+		}
+		else if (c == Commands::c_setDeletedByPosition || c == Commands::c_correctNodePosition) {
+			cout << "Enter the position" << endl;
+			cin >> position;
 		}
 
 		switch (c) {
-		case Commands::createHashChain:
+		case Commands::c_createTable:
 		{
 			hashTable = createTable(headHumanList, numberOfTableKeys);
 			cout << "Your hash table:" << endl; cin.get();
@@ -141,24 +163,20 @@ int main() {
 			isListExist = true;
 			break;
 		}
-		case Commands::printHash:
+		case Commands::c_printTable:
 		{
 			cout << "Your hash table:" << endl; cin.get();
 			printTable(hashTable, numberOfTableKeys);
 			break;
 		}
-		case Commands::printHumanList:
+		case Commands::c_printRecords:
 		{
 			cout << "Your list:" << endl; cin.get();
 			printList(headHumanList);
 			break;
 		}
-		case Commands::searchByDateOfBirth:
+		case Commands::c_searchByDateOfBirth:
 		{
-			cout << "Enter the key" << endl; cin.get();
-			string key;
-			getline(cin, key);
-
 			PassportData* pd = nullptr;
 			pd = searchTable(key, hashTable, numberOfTableKeys);
 
@@ -170,14 +188,14 @@ int main() {
 			}
 			break;
 		}
-		case Commands::countCollision:
+		case Commands::c_countCollision:
 		{
 			cout << "num of collision is: ";
 			cout << collisionCount(headHumanList, numberOfTableKeys);
 			cout << endl;
 			break;
 		}
-		case Commands::deleteHash:
+		case Commands::c_deleteTable:
 		{
 			cout << "Sure? Y: ";
 			string answer;
@@ -194,32 +212,27 @@ int main() {
 			}
 			break;
 		}
-		case Commands::addNewCell:
+		case Commands::c_pushBackNode:
 		{
 			deleteTable(hashTable, numberOfTableKeys);
 			pushBackChainNode(headHumanList, numberOfTableKeys);
-
 			hashTable = createTable(headHumanList, numberOfTableKeys);
 			break;
 		}
-		case Commands::setDeletedByKeyC:
+		case Commands::c_setDeletedByKey:
 		{
-			cout << "Enter the key" << endl; cin.get();
-			string key;
-			getline(cin, key);
-
 			deleteTable(hashTable, numberOfTableKeys);
 			writeToFile(headHumanList, backupFilename);
-			setDeletedNodeByKey(key, headHumanList);
+			setDeletedNodeByKey(headHumanList, key);
 			hashTable = createTable(headHumanList, numberOfTableKeys);
 			break;
 		}
-		case Commands::writeFile:
+		case Commands::c_writeToFile:
 		{
 			writeToFile(headHumanList, "myFile.txt");
 			break;
 		}
-		case Commands::restoreFile:
+		case Commands::c_readFromFile:
 		{
 			if (isListExist) {
 				deleteChain(headHumanList);
@@ -228,9 +241,10 @@ int main() {
 			}
 			headHumanList = readFromFile(numberOfTableKeys, "myFile.txt");
 			hashTable = createTable(headHumanList, numberOfTableKeys);
+			isListExist = true;
 			break;
 		}
-		case Commands::deleteTagged:
+		case Commands::c_deleteTagged:
 		{
 			if (headHumanList != nullptr) {
 				deleteTable(hashTable, numberOfTableKeys);
@@ -242,41 +256,26 @@ int main() {
 			}
 			break;
 		}
-		case Commands::correctNodeCkey: {
-			cout << "Enter the key" << endl; cin.get();
-			string key;
-			getline(cin, key);
-
+		case Commands::c_correctNodekey: {
 			correctNodeByKey(headHumanList, key);
 			deleteTable(hashTable, numberOfTableKeys);
 			hashTable = createTable(headHumanList, numberOfTableKeys);
-
 			break;
 		}
-		case Commands::correctNodeCnum: {
-			cout << "Enter the num" << endl;
-			int num;
-			cin >> num;
-
-			correctNodeByNumber(headHumanList, num);
+		case Commands::c_correctNodePosition: {
+			correctNodeByNumber(headHumanList, position);
 			deleteTable(hashTable, numberOfTableKeys);
 			hashTable = createTable(headHumanList, numberOfTableKeys);
-
 			break;
 		}
-		case Commands::setDeletedByNumC: {
-			cout << "Enter the num" << endl;
-			int num;
-			cin >> num;
-
+		case Commands::c_setDeletedByPosition: {
 			writeToFile(headHumanList, backupFilename);
-
 			deleteTable(hashTable, numberOfTableKeys);
-			setDeletedNodeByNumber(num, headHumanList);
+			setDeletedNodeByNumber(headHumanList, position);
 			hashTable = createTable(headHumanList, numberOfTableKeys);
 			break;
 		}
-		case Commands::restoreDeletedElem: {
+		case Commands::c_restoreDeletedNode: {
 			if (isListExist) {
 				deleteChain(headHumanList);
 				deleteTable(hashTable, numberOfTableKeys);
@@ -284,12 +283,12 @@ int main() {
 			}
 			headHumanList = readFromFile(numberOfTableKeys, backupFilename);
 			hashTable = createTable(headHumanList, numberOfTableKeys);
+			isListExist = true;
 			break;
 		}
-		default:
+		default: 
 		{
-			cout << numberOfTableKeys;
-			return 0;
+			//cout << numberOfTableKeys;
 		}
 		
 		}//endswitch
@@ -298,7 +297,15 @@ int main() {
 		if (headHumanList != nullptr && countForDeletedNodes(headHumanList) >= numberOfTableKeys / 2) {
 			deleteTable(hashTable, numberOfTableKeys);
 			headHumanList = deleteTaggedNodes(headHumanList, numberOfTableKeys);
-			hashTable = createTable(headHumanList, numberOfTableKeys);
+			if (numberOfTableKeys == 0) {
+				isListExist = false;
+				hashTable = nullptr;
+				headHumanList = nullptr;
+			}
+			else {
+				hashTable = createTable(headHumanList, numberOfTableKeys);
+				isListExist = true;
+			}
 		}
 
 	}//endwhile
@@ -312,7 +319,7 @@ string generateStructName() {
 	return surname + " " + name + " " + patronymic;
 }
 string generateStructDateOfBirth() {
-	int date = rand() % 29;
+	int date = rand() % 28 + 1;
 	int month = rand() % 12 + 1;
 	int year = 1980 + rand() % 36;
 	return to_string(date) + "." + to_string(month) + "." + to_string(year);
@@ -469,6 +476,13 @@ PassportData* searchChainByKey(PassportData* chainHead, string key) {
 	}
 	return nullptr;
 }
+PassportData* searchChainByNumber(PassportData* headChain, int number) {
+	PassportData* ptrNode = headChain;
+	for (int i = 1; i < number && ptrNode != nullptr; i++) {
+		ptrNode = ptrNode->ptrNext;
+	}
+	return ptrNode;
+}
 
 int collisionCount(PassportData* headHumanList, int numberOfTableKeys) {
 	int* massiveCollisions = new int[numberOfTableKeys];
@@ -507,14 +521,14 @@ void pushBackChainNode(PassportData* headHumanChain, int& numberOfTableKeys) {
 	pushBackChain(headHumanChain, insertionCell);
 	numberOfTableKeys++;
 }
-void setDeletedNodeByKey(string key, PassportData* headHumanChain) {
+void setDeletedNodeByKey(PassportData* headHumanChain, string key) {
 	PassportData* taggedNode = searchChainByKey(headHumanChain, key);
 	if (taggedNode != nullptr) taggedNode->isDeleted = "true";
 	else {
 		cout << "failed to setDeletedNodeByKey() function" << endl;
 	}
 }
-void setDeletedNodeByNumber(int position, PassportData* headHumanChain) {
+void setDeletedNodeByNumber(PassportData* headHumanChain, int position) {
 	PassportData* taggedNode = searchChainByNumber(headHumanChain, position);
 	if (taggedNode != nullptr) taggedNode->isDeleted = "true";
 	else {
@@ -638,21 +652,8 @@ void correctNodeByKey(PassportData* headChain, string key) {
 	
 	PassportData pd = cinNode();
 	pd.dateOfBirth = toCorrect->dateOfBirth;
+	pd.ptrNext = toCorrect->ptrNext;
 	dataCopy(toCorrect, pd);
-}
-PassportData cinNode() {
-	PassportData pd;
-	cout << "name? "; cin >> pd.name;
-	cout << "passport? "; cin >> pd.passportNumber;
-	return pd;
-}
-
-PassportData* searchChainByNumber(PassportData* headChain, int number) {
-	PassportData* ptrNode = headChain;
-	for (int i = 1; i < number && ptrNode != nullptr; i++) {
-		ptrNode = ptrNode->ptrNext;
-	}
-	return ptrNode;
 }
 void correctNodeByNumber(PassportData* headChain, int numberOfTheTableKeys) {
 	PassportData* toCorrect = searchChainByNumber(headChain, numberOfTheTableKeys);
@@ -663,5 +664,12 @@ void correctNodeByNumber(PassportData* headChain, int numberOfTheTableKeys) {
 
 	PassportData pd = cinNode();
 	pd.dateOfBirth = toCorrect->dateOfBirth;
+	pd.ptrNext = toCorrect->ptrNext;
 	dataCopy(toCorrect, pd);
+}
+PassportData cinNode() {
+	PassportData pd;
+	cout << "name? "; cin >> pd.name;
+	cout << "passport? "; cin >> pd.passportNumber;
+	return pd;
 }
